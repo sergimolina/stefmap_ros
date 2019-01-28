@@ -1,0 +1,9 @@
+float64 prediction_time
+float64 x_min
+float64 x_max
+float64 y_min
+float64 y_max
+float64 cell_size
+int64 rows
+int64 columns
+STeFMapCellMsg[] cell
