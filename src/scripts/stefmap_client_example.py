@@ -36,7 +36,7 @@ if __name__ == "__main__":
     try:
         get_stefmap = rospy.ServiceProxy('get_stefmap', GetSTeFMap)
         stefmap = get_stefmap(prediction_time,order,x_min,x_max,y_min,y_max,cell_size)
-        print stefmap
+        print stefmap 
     
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e 
