@@ -32,8 +32,6 @@ def predict_map(timestamp,order):
 def handle_GetSTeFMap(req):
 	global predicted_probabilities
 
-
-
 	predict_map(req.prediction_time,req.order)
 
 	rows = int((req.y_max - req.y_min)/req.cell_size)
