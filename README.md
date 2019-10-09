@@ -16,5 +16,5 @@ ROS implementation to call a STeF-Map prediction
 5. rosrun stefmap_ros stefmap_server.py
 
 6. python .../stefmap_ros/src/scripts/stefmap_client_example.py
-	[u should see plot in the terminal a stemap with the structure specified in the msg folder with the files STeFMapMsg.msg and STeFMapCellMsg.msg]
+	[u should see printed in the terminal a stemap with the structure specified in the msg folder with the files STeFMapMsg.msg and STeFMapCellMsg.msg]
 
