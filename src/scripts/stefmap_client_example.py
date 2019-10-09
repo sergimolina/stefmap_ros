@@ -4,16 +4,6 @@ import sys
 import rospy
 from stefmap_ros.srv import GetSTeFMap
 
-def add_two_ints_client(x, y):
-    rospy.wait_for_service('add_two_ints')
-    try:
-        add_two_ints = rospy.ServiceProxy('add_two_ints', AddTwoInts)
-        resp1 = add_two_ints(x, y)
-        return resp1.sum
-    except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
-
-
 if __name__ == "__main__":
     prediction_time = 1352265000
     order = 2
