@@ -11,7 +11,7 @@
     	<param name="y_max" value="25" />
     	<param name="interval_time" value="10" />
     	<param name="num_bins" value="8" />
-    	<param name="frame_id" value="/map" />
+    	<param name="frame_id" value="map" />
     	<param name="people_detections_topic" value="/people_tracker/pose_array" />
     	<param name="coverage_laser_topic" value="/velodyne_scan" />
     	<param name="coverage_time_update" value="5" />

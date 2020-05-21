@@ -5,7 +5,7 @@ import time
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 from fremenarray.msg import FremenArrayActionGoal, FremenArrayGoal, FremenArrayAction
-from geometry_msgs.msg import PoseArray, PointStamped
+from geometry_msgs.msg import PoseArray, PointStamped,PoseStamped
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from nav_msgs.msg import OccupancyGrid
 import actionlib
@@ -26,7 +26,7 @@ class STeFmap_node_online(object):
 		self.y_max = rospy.get_param('~y_max',50) #meters
 		self.interval_time = rospy.get_param('~interval_time',10)#seconds
 		self.num_bins = rospy.get_param('~num_bins',8) #bins dividing the circumference
-		self.frame_id = rospy.get_param('~frame_id',"/map")
+		self.frame_id = rospy.get_param('~frame_id',"map")
 		self.people_detections_topic = rospy.get_param('~people_detections_topic',"/people_detections")
 		self.coverage_laser_topic = rospy.get_param('~coverage_laser_topic',"/coverage_scan")
 		self.coverage_time_update = rospy.get_param('~coverage_time_update',5) # seconds
@@ -89,14 +89,16 @@ class STeFmap_node_online(object):
 	def people_detections_callback(self, data):
 		for i in range(0,len(data.poses)):
 			try:
-				pose_in_map = self.tf_listener.transformPose(self.frame_id,data.poses[i])
-			except:
-				rospy.loginfo("TF transform between "+self.frame_id+" and "+data.poses[i].header.frame_id+" not found")
+				current_pose = PoseStamped()
+				current_pose.header = data.header
+				current_pose.pose = data.poses[i]
+				pose_in_map = self.tf_listener.transformPose(self.frame_id,current_pose)
+			except Exception as e:
+				rospy.loginfo("TF transform between "+self.frame_id+" and "+data.header.frame_id+" not found")
 				return
-
 			# calculate the cell and the angle_bin where the detection belongs
-			(cell_x,cell_y) = self.point2cell(pose_in_map.position.x,pose_in_map.position.y)
-			(roll, pitch, yaw) = euler_from_quaternion ([pose_in_map.orientation.x,pose_in_map.orientation.y,pose_in_map.orientation.z,pose_in_map.orientation.w])
+			(cell_x,cell_y) = self.point2cell(pose_in_map.pose.position.x,pose_in_map.pose.position.y)
+			(roll, pitch, yaw) = euler_from_quaternion ([pose_in_map.pose.orientation.x,pose_in_map.pose.orientation.y,pose_in_map.pose.orientation.z,pose_in_map.pose.orientation.w])
 			
 			if cell_x >= 0 and cell_x < self.width and cell_y >= 0 and cell_y < self.height:
 				if self.visibility_map.data[self.cell2index(cell_x,cell_y)] == 100:
@@ -139,10 +141,7 @@ class STeFmap_node_online(object):
 
 	def lasercoverage_callback(self,laser_data):
 		if (rospy.get_time() - self.last_time)>self.coverage_time_update:
-			t0= time.time()
 			self.apply_raytracing(laser_data)
-			t1 = time.time()
-			print("Time elapsed: ", t1 - t0) # CPU seconds elapsed (floating point)
 			self.last_time = rospy.get_time()
 
 	def point2index(self,point_x,point_y):

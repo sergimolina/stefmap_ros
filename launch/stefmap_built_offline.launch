@@ -10,7 +10,7 @@
     	<param name="y_min" value="-25" />
     	<param name="y_max" value="25" />
     	<param name="num_bins" value="8" />
-    	<param name="frame_id" value="/map" />
+    	<param name="frame_id" value="map" />
     </node>
 
 	<node pkg="fremenarray" type="fremenarray" name="fremenarray" output="screen">
