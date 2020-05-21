@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+
+	<node pkg = "tf" type = "static_transform_publisher" name="map_to_map2" args="-48 -28 0 0.2 0 0 /map /stefmap_frame 100" />
+
+	<node pkg= "fremenarray" type = "fremenarray" name="fremenarray" />
+
+	<node pkg= "stefmap_ros" type = "stefmap_server.py" name="stefmap_server" />
+
+	<node pkg= "stefmap_ros" type = "stefmap_client_orkla_data.py" name="stefmap_client" />
+
+	<node pkg="rviz" type="rviz" name="rviz" />
+
+	<node pkg="map_server" type="map_server" name="mapserver" args="$(find stefmap_ros)/maps/orkla_map_lasertop.yaml"/>
+
+	<node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure"/>
+
+
+
+</launch>
