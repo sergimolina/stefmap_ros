@@ -28,7 +28,7 @@ class STeFmap_node_online(object):
 		self.num_bins = rospy.get_param('~num_bins',8) #bins dividing the circumference
 		self.frame_id = rospy.get_param('~frame_id',"/map")
 		self.people_detections_topic = rospy.get_param('~people_detections_topic',"/people_detections")
-		self.coverage_laser_topic = rospy.get_param('~coverage_laser_topic',"/scan")
+		self.coverage_laser_topic = rospy.get_param('~coverage_laser_topic',"/coverage_scan")
 		self.coverage_time_update = rospy.get_param('~coverage_time_update',5) # seconds
 
 		# initialize visibility map
@@ -88,9 +88,15 @@ class STeFmap_node_online(object):
 
 	def people_detections_callback(self, data):
 		for i in range(0,len(data.poses)):
+			try:
+				pose_in_map = self.tf_listener.transformPose(self.frame_id,data.poses[i])
+			except:
+				rospy.loginfo("TF transform between "+self.frame_id+" and "+data.poses[i].header.frame_id+" not found")
+				return
+
 			# calculate the cell and the angle_bin where the detection belongs
-			(cell_x,cell_y) = self.point2cell(data.poses[i].position.x,data.poses[i].position.y)
-			(roll, pitch, yaw) = euler_from_quaternion ([data.poses[i].orientation.x,data.poses[i].orientation.y,data.poses[i].orientation.z,data.poses[i].orientation.w])
+			(cell_x,cell_y) = self.point2cell(pose_in_map.position.x,pose_in_map.position.y)
+			(roll, pitch, yaw) = euler_from_quaternion ([pose_in_map.orientation.x,pose_in_map.orientation.y,pose_in_map.orientation.z,pose_in_map.orientation.w])
 			
 			if cell_x >= 0 and cell_x < self.width and cell_y >= 0 and cell_y < self.height:
 				if self.visibility_map.data[self.cell2index(cell_x,cell_y)] == 100:
