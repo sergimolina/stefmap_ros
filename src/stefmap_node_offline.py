@@ -31,6 +31,21 @@ class STeFmap_node_offline(object):
 		self.width = int((self.x_max-self.x_min)/self.grid_size) ## [cells]
 		self.height = int((self.y_max-self.y_min)/self.grid_size) ## [cells]
 
+		#initialize entropy map
+		self.entropy_map = OccupancyGrid()
+		self.entropy_map.header.frame_id = self.frame_id
+		self.entropy_map.info.resolution = self.grid_size ## [m/cell]
+		self.entropy_map.info.width = self.width ## [cells]
+		self.entropy_map.info.height = self.height ## [cells]
+		self.entropy_map.info.origin.position.x = self.x_min #origin of the map [m,m,rad]. This is the real #world pose of the cell (0,0) in the map
+		self.entropy_map.info.origin.position.y = self.y_min 
+		self.entropy_map.info.origin.position.z = 0
+		self.entropy_map.info.origin.orientation.x = 0
+		self.entropy_map.info.origin.orientation.y = 0
+		self.entropy_map.info.origin.orientation.z = 0
+		self.entropy_map.info.origin.orientation.w = 1
+		self.entropy_map.data = np.zeros(self.width*self.height)
+
 		# connect to fremenarray
 		rospy.loginfo("waiting for FremenArray.....")
 		self.fremenarray_client = actionlib.SimpleActionClient('/fremenarray', FremenArrayAction)
@@ -40,6 +55,8 @@ class STeFmap_node_offline(object):
 		# initiliatize stefmap
 		rospy.loginfo("Initializing STeF-map.....")
 		self.bin_counts_matrix = np.ones([self.width,self.height,self.num_bins])*-1 #initialize cells as unexplored/unknow
+		self.bin_counts_matrix_accumulated = np.zeros([self.width,self.height,self.num_bins])
+		self.entropy_map_store = []
 
 		fremenarray_msg=FremenArrayGoal()
 		fremenarray_msg.operation = 'add'
@@ -55,21 +72,56 @@ class STeFmap_node_offline(object):
 		# create stef map service and topic
 		get_stefmap_service = rospy.Service('get_stefmap', GetSTeFMap, self.handle_GetSTeFMap)
 		update_stefmap_service = rospy.Service('update_stefmap', UpdateSTeFMap, self.handle_UpdateSTeFMap)
+		self.entropy_map_pub = rospy.Publisher('/entropy_map', OccupancyGrid, queue_size=1,latch=True)
 		self.stefmap_pub = rospy.Publisher('/stefmap', STeFMapMsg, queue_size=1, latch=True)
 
 		self.run()
 
+	def cell2index(self,cell_x,cell_y):
+		index = cell_x + cell_y*self.width 
+		return int(index)
+		
 	def handle_UpdateSTeFMap(self,req):
+		self.bin_counts_matrix = np.reshape(req.data,[self.width,self.height,self.num_bins])
+		self.update_entropy_map(req.update_time)
+		
+		#normalize the histogram before updatinf fremen
+		for r in range(0,int(self.width)):
+			for c in range(0,int(self.height)):
+				max_count = np.amax(self.bin_counts_matrix[r][c][:])
+				if max_count > 0:
+					for b in range(0,int(self.num_bins)):
+						self.bin_counts_matrix[r][c][b] = 100*self.bin_counts_matrix[r][c][b]/max_count
+		
 		fremenarray_msg = FremenArrayGoal()
 		fremenarray_msg.operation = 'add'
 		fremenarray_msg.time = req.update_time
-		fremenarray_msg.states = req.data
+		fremenarray_msg.states = np.reshape(self.bin_counts_matrix,self.width*self.height*self.num_bins)
 
 		self.fremenarray_client.send_goal(fremenarray_msg)
 		self.fremenarray_client.wait_for_result()
 		fremenarray_result = self.fremenarray_client.get_result()
 		rospy.loginfo(fremenarray_result.message)
 		return fremenarray_result.message
+
+	def update_entropy_map(self,update_time):
+		self.bin_counts_matrix_accumulated = self.bin_counts_matrix_accumulated + self.bin_counts_matrix
+		self.entropy_map.data = np.zeros(self.width*self.height)
+		total_map_entropy = 0
+
+		for r in range(0,int(self.width)):
+			for c in range(0,int(self.height)):
+				# normalized the accumulated distribution -> total sum = 1
+				total_count = np.sum(self.bin_counts_matrix_accumulated[r][c][:])
+				if total_count > 0:
+					for b in range(0,int(self.num_bins)):
+						if self.bin_counts_matrix_accumulated[r][c][b] > 0:
+							p_b = self.bin_counts_matrix_accumulated[r][c][b]/total_count
+							self.entropy_map.data[self.cell2index(r,c)] =  self.entropy_map.data[self.cell2index(r,c)] + (-p_b*np.log(p_b) + (self.num_bins-1/2*total_count)*np.log(2.718281)) #e = 2.718281
+							total_map_entropy = total_map_entropy + self.entropy_map.data[self.cell2index(r,c)]
+		self.entropy_map_store.append([update_time,total_map_entropy])
+
+		self.entropy_map_pub.publish(self.entropy_map)
 
 	def handle_GetSTeFMap(self,req):
 		mSTefMap = STeFMapMsg()

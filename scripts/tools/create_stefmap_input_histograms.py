@@ -70,12 +70,12 @@ if __name__ == '__main__':
 				break
 
 		# normalize matrix
-		for r in range(0,rows):
-			for c in range(0,cols):
-				max_count = np.amax(bin_counts_matrix[r,c,:])
-				if max_count > 0:
-					for b in range(0,num_bins):
-						bin_counts_matrix[r,c,b] = 100*bin_counts_matrix[r,c,b]/max_count
+		#for r in range(0,rows):
+		#	for c in range(0,cols):
+		#		max_count = np.amax(bin_counts_matrix[r,c,:])
+		#		if max_count > 0:
+		#			for b in range(0,num_bins):
+		#				bin_counts_matrix[r,c,b] = 100*bin_counts_matrix[r,c,b]/max_count
 
 		# Save  the matrix in the output file
 		ofile.write(str(t_now))
