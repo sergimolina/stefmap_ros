@@ -3,10 +3,11 @@ STeF-map ROS implementation
 
 There are two modalities to run the STeF-map: Online or Offline
 - Online: the 
-- Offile: this modality is useful when the data has been already gathered and when we want to built the STeF-map manually (no need of active topics)
+- Offile: this modality is useful when the data has been already gathered and we want to built the STeF-map manually (no need of active topics)
 
 ## Nodes:
 ### stefmap_node_online
+
 #### Subscribed topics:
 
 /people_detections (geometry_msgs/PoseArray)
@@ -25,29 +26,28 @@ There are two modalities to run the STeF-map: Online or Offline
 
 #### Parameters:
 ~grid_size (float, default: 1)
-  Cell size. Recommended between 0.5m and 2m
 
-~x_min (string, default: base_link)
+    Cell size. Recommended between 0.5m and 2m
 
-~x_max (string, default: base_link)
+~x_min (float, default: base_link)
 
-~y_min (string, default: base_link)
+~x_max (float, default: base_link)
 
-~y_max (string, default: base_link)
+~y_min (float, default: base_link)
 
-~interval_time (string, default: base_link)
+~y_max (float, default: base_link)
 
-~num_bins (string, default: base_link)
+~interval_time (int, default: base_link)
 
-~frame_id (string, default: base_link)
+~num_bins (int, default: base_link)
 
-~people_detections_topic (string, default: base_link)
+~frame_id (string, default: map)
 
-~coverage_laser_topic (string, default: base_link)
+~people_detections_topic (string, default: people_detections)
 
-~coverage_time_update (string, default: base_link)
+~coverage_laser_topic (string, default: coverage_scan)
 
-
+~coverage_time_update (float, default: 5 )
 
 
 ### stefmap_node_offline
