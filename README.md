@@ -4,8 +4,8 @@ STeF-map is a time-dependent probabilistic map able to model and predict flow pa
 
 
 There are two modalities to run the STeF-map: Online or Offline
-- Online: the 
-- Offile: this modality is useful when the data has been already gathered and we want to built the STeF-map manually (no need of active topics)
+- Online: the aim of this one is to create the STeF-map as at the same time the robot is gathering the people detections.
+- Offile: this modality is useful when the data has been already gathered and we want to built the STeF-map manually (no need of active topics) using data from the past.
 
 ## Nodes:
 ### stefmap_node_online
