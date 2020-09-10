@@ -3,7 +3,7 @@
 import rospy
 from spencer_tracking_msgs.msg import DetectedPersons, DetectedPerson, TrackedPersons, TrackedPerson
 from geometry_msgs.msg import PoseArray,Pose
-
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 class spencermsgs_to_posearray(object):
 
@@ -25,7 +25,7 @@ class spencermsgs_to_posearray(object):
 
     for p in range(0,len(spencer_msg.detections)):
       people_detections_msg.poses.append(spencer_msg.detections[p].pose.pose)
-
+      
     self.people_detections_converted_pub.publish(people_detections_msg)
 
 
