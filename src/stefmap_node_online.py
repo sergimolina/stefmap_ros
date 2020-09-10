@@ -139,7 +139,8 @@ class STeFmap_node_online(object):
 	def update_fremen_models(self):
 		#before normalizing the counts, update the spatial entropy model
 		now = rospy.get_rostime()
-		self.update_entropy_map(now.secs)
+		#self.update_entropy_map(now.secs)
+		
 		# Normalize the count matrix for each cell, giving the orientation with the maximum counts the max value
 		for r in range(0,int(self.width)):
 			for c in range(0,int(self.height)):
@@ -212,11 +213,42 @@ class STeFmap_node_online(object):
 		
 		#print last_laser_data.range_min,last_laser_data.range_max
 		for i in range(0,len(last_laser_data.ranges)):
-
-			if ((last_laser_data.ranges[i] > last_laser_data.range_min) and (last_laser_data.ranges[i] < last_laser_data.range_max)):
+			if np.isinf(last_laser_data.ranges[i]):
 				current_angle = last_laser_data.angle_min + last_laser_data.angle_increment*i
 
-				#point in laser coordinates
+				#point in laser coordinatesranges
+				laser_point_x = last_laser_data.range_max * np.cos(current_angle)
+				laser_point_y = last_laser_data.range_max * np.sin(current_angle)
+
+				# transform the point in map coordinates
+				laser_point=PointStamped()
+				laser_point.header.frame_id = last_laser_data.header.frame_id
+				laser_point.header.stamp =rospy.Time(0)
+				laser_point.point.x=laser_point_x
+				laser_point.point.y=laser_point_y
+				laser_point.point.z=0.0
+				laser_point_map=self.tf_listener.transformPoint(self.frame_id,laser_point)
+
+				# calculate several points in the ray trace
+				raytrace_x_points = np.linspace(laser_sensor_x,laser_point_map.point.x,100) # divide the trace in 100 segments (this could be a parameter)
+				raytrace_y_points = np.linspace(laser_sensor_y,laser_point_map.point.y,100)
+				
+				#find the associated cells to the ray trace points found
+				for j in range(0,len(raytrace_x_points)):
+					index = self.point2index(raytrace_x_points[j],raytrace_y_points[j])
+					if index < self.width*self.height:
+						self.visibility_map.data[index] = 100
+
+					(cell_x,cell_y) = self.point2cell(raytrace_x_points[j],raytrace_y_points[j])
+					if cell_x >= 0 and cell_x < self.width and cell_y >= 0 and cell_y < self.height:
+						if self.bin_counts_matrix[cell_x][cell_y][1] == -1:
+							for b in range(0,self.num_bins):
+								self.bin_counts_matrix[cell_x][cell_y][b] = 0
+				
+			if ((last_laser_data.ranges[i] > last_laser_data.range_min) and (last_laser_data.ranges[i] <= last_laser_data.range_max)):
+				current_angle = last_laser_data.angle_min + last_laser_data.angle_increment*i
+
+				#point in laser coordinatesranges
 				laser_point_x = last_laser_data.ranges[i] * np.cos(current_angle)
 				laser_point_y = last_laser_data.ranges[i] * np.sin(current_angle)
 

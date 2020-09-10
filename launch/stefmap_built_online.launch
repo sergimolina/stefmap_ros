@@ -21,7 +21,7 @@
     </node>
 
     
-    <node pkg="tf" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0 0 0 0 /map /odom  100" output="log"/>
+    <node pkg="tf" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0 0 0 0 /map /odom  1000" output="log"/>
 
     <node pkg="velodyne_pointcloud" type="cloud_node" name="cloud_node" output="log">
         <param name="calibration" value="$(find velodyne_pointcloud)/params/VLP16db.yaml"/>
