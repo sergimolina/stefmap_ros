@@ -1,5 +1,7 @@
 # stefmap_ros
-STeF-map ROS implementation 
+STeF-map ROS implementation.
+STeF-map is a time-dependent probabilistic map able to model and predict flow patterns of people in indoor environments. The proposed representation models the likelihood of motion direction on a grid-based map by a set of harmonic functions, which efficiently capture long-term variations of crowd movements over time [1].
+
 
 There are two modalities to run the STeF-map: Online or Offline
 - Online: the 
@@ -10,46 +12,65 @@ There are two modalities to run the STeF-map: Online or Offline
 
 #### Subscribed topics:
 
-/people_detections (geometry_msgs/PoseArray)
+    /people_detections (geometry_msgs/PoseArray)
+        Topic providing the people detections used later to build the histograms in each time interval and upda the STeF-map.
 
-/coverage_scan (sensor_msgs/LaserScan)
+    /coverage_scan (sensor_msgs/LaserScan)
+        Scan used to perform ray tracing and define the cells that are seen by the robot. Only the cells that can be seen are updated in each time interval. 
+        This is done to differenciate between cells that are seen but there was no detections and cells that are not seen and hence no data was available.
 
 #### Published topics:
 
-/visibility_map (nav_msgs/OccupancyGrid)
+    /visibility_map (nav_msgs/OccupancyGrid)
 
-/stefmap (stefmap_ros/STeFMapMsg)
+    /stefmap (stefmap_ros/STeFMapMsg)
 
 #### Services:
-~get_stefmap (stefmap_ros/GetSTeFMap)
+    ~get_stefmap (stefmap_ros/GetSTeFMap)
+        It provides a STeF-map prediction given a time (unix) and the model order (frequency components to use to calculate the output)
 
 
 #### Parameters:
-~grid_size (float, default: 1)
+    ~grid_size (float, default: 1)  
+        Cell size. Recommended between 0.5m and 2m.
 
-    Cell size. Recommended between 0.5m and 2m
+    ~x_min (float, default: -50)    
+        Minimum x value of the STeF-map.
 
-~x_min (float, default: base_link)
+    ~x_max (float, default: 50)     
+        Maximum x value of the STeF-map.
 
-~x_max (float, default: base_link)
+    ~y_min (float, default: -50)
+        Minimum y value of the STeF-map.
 
-~y_min (float, default: base_link)
+    ~y_max (float, default: 50)
+        Maximum y value of the STeF-map.
 
-~y_max (float, default: base_link)
+    ~interval_time (int, default: 600)
+        Interval of time in seconds between STeF-map updates.
 
-~interval_time (int, default: base_link)
+    ~num_bins (int, default: 8)
+        Number of bins discretising the full circumference. Recommended 8 or 12.
 
-~num_bins (int, default: base_link)
+    ~frame_id (string, default: map)
+        The name of the STeF-map frame.
 
-~frame_id (string, default: map)
+    ~people_detections_topic (string, default: people_detections)
+        Name of the topic providing the people detections.
 
-~people_detections_topic (string, default: people_detections)
-
-~coverage_laser_topic (string, default: coverage_scan)
-
-~coverage_time_update (float, default: 5 )
+    ~coverage_laser_topic (string, default: coverage_scan)
+        Name of the topic providing the coverage scan.
+        
+    ~coverage_time_update (float, default: 5)
+        Frequency in seconds between coverage scan updates. The faster the robot can move the lower the value has to be.
 
 
 ### stefmap_node_offline
 As mentioned before this way of building the STeF-map is useful when we arlready have the people dection data.
 
+
+## Contact
+For further questions or doubts: smolinamellado@lincoln.ac.uk
+
+## References
+[1] S. Molina, G. Cielniak, T. Krajnik and T. Duckett. Modelling and Predicting Rhythmic Flow Patterns in Dyanmics Environments. In Towards  AutonomousRobotic Systems (TAROS), volume 10965, pages 135–146, 2018. 
