@@ -22,8 +22,10 @@ There are two modalities to run the STeF-map: Online or Offline
 #### Published topics:
 
     /visibility_map (nav_msgs/OccupancyGrid)
+        Map showing the coverage applying ray tracing using the /coverage_scan topic.
 
     /stefmap (stefmap_ros/STeFMapMsg)
+        This topic is published everytime the service ~get_stemap is called.
 
 #### Services:
     ~get_stefmap (stefmap_ros/GetSTeFMap)
@@ -67,7 +69,41 @@ There are two modalities to run the STeF-map: Online or Offline
 
 ### stefmap_node_offline
 As mentioned before this way of building the STeF-map is useful when we arlready have the people dection data.
+#### Subscribed topics:
+    None
+#### Published topics:
+    /stefmap (stefmap_ros/STeFMapMsg)
+        This topic is published everytime the service ~get_stemap is called.
 
+#### Services:
+    ~get_stefmap (stefmap_ros/GetSTeFMap)
+        It provides a STeF-map prediction given a time (unix) and the model order (frequency components to use to calculate the output)
+    
+    ~update_stefmap (stefmap_ros/UpdateSTeFMap)
+        This service allows to update the STeF-map with the data provided.
+        
+
+#### Parameters:
+    ~grid_size (float, default: 1)  
+        Cell size. Recommended between 0.5m and 2m.
+
+    ~x_min (float, default: -50)    
+        Minimum x value of the STeF-map.
+
+    ~x_max (float, default: 50)     
+        Maximum x value of the STeF-map.
+
+    ~y_min (float, default: -50)
+        Minimum y value of the STeF-map.
+
+    ~y_max (float, default: 50)
+        Maximum y value of the STeF-map.
+
+    ~num_bins (int, default: 8)
+        Number of bins discretising the full circumference. Recommended 8 or 12.
+
+    ~frame_id (string, default: map)
+        The name of the STeF-map frame.
 
 ## Contact
 For further questions or doubts: smolinamellado@lincoln.ac.uk
