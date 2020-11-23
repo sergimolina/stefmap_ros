@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<launch>
+
+  <param name="use_sim_time" value="true"/>
+
+    <node pkg="stefmap_ros" type="stefmap_node_online.py" name="stefmap_node" output="screen">
+    	<param name="grid_size" value="1"/>  
+		  <param name="x_min" value="-50" />
+    	<param name="x_max" value="50" />
+    	<param name="y_min" value="-50" />
+    	<param name="y_max" value="50" />
+    	<param name="interval_time" value="10" />
+    	<param name="num_bins" value="8" />
+    	<param name="frame_id" value="map_laser2d" />
+    	<param name="people_detections_topic" value="/robot3/human_detection/people_tracker/pose_array" />
+    	<param name="coverage_laser_topic" value="/robot3/sensors/velodyne_scan_1/filtered" />
+    	<param name="coverage_time_update" value="1" />
+    </node>
+
+	  <node pkg="fremenarray" type="fremenarray" name="fremenarray" output="log">
+    </node>
+
+    <node pkg="stefmap_ros" type="spencermsgs_to_posearray.py" name="spencermsgs_to_posearray" output="log">
+      <param name="people_detections_topic" value="/robot3/human_detection/people_tracker"/>
+    </node>
+
+
+    <node pkg="velodyne_pointcloud" type="cloud_node" name="cloud_node" output="log">
+        <param name="calibration" value="$(find velodyne_pointcloud)/params/32db.yaml"/>
+        <remap from="velodyne_packets" to="/robot3/sensors/velodyne_packets"/>
+        <remap from="velodyne_points" to="/robot3/sensors/velodyne_points"/>
+    </node>
+
+    <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan_1" output="screen">
+      <remap from="cloud_in" to="/robot3/sensors/velodyne_points"/>
+      <remap from="scan" to="/robot3/sensors/velodyne_scan_1"/>
+      <rosparam>
+          transform_tolerance: 0.01
+          min_height: -1.2 #change according the heigh where the real sensor is
+          max_height: 0.5
+          angle_min: -3.14 # -M_PI
+          angle_max: 3.14 # M_PI
+          angle_increment: 0.0043 # M_PI/360.0
+          scan_time: 0.1
+          range_min: 0.9
+          range_max: 20
+          use_inf: true
+      </rosparam>
+    </node>
+
+    <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan_2" output="screen">
+      <remap from="cloud_in" to="/robot3/sensors/velodyne_points"/>
+      <remap from="scan" to="/robot3/sensors/velodyne_scan_2"/>
+      <rosparam>
+          transform_tolerance: 0.01
+          min_height: -1.2 #change according the heigh where the real sensor is
+          max_height: 0.5
+          angle_min: -3.14 # -M_PI
+          angle_max: 3.14 # M_PI
+          angle_increment: 0.0043 # M_PI/360.0
+          scan_time: 0.1
+          range_min: 0.9
+          range_max: 100
+          use_inf: true
+      </rosparam>
+    </node>
+
+    <node pkg="stefmap_ros" type="laserscan_coverage_filter.py" name="laserscan_coverage_filt" output="screen">
+      <param name="scan_1_topic" value="/robot3/sensors/velodyne_scan_1"/>
+      <param name="scan_2_topic" value="/robot3/sensors/velodyne_scan_2"/>      
+    </node>
+
+</launch>

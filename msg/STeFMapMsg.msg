@@ -1,4 +1,5 @@
 Header header
+int64 prediction_time
 float64 x_min
 float64 x_max
 float64 y_min

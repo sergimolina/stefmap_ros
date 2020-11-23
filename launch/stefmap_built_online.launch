@@ -39,7 +39,7 @@
           angle_max: 3.14 # M_PI
           angle_increment: 0.0043 # M_PI/360.0
           scan_time: 0.1
-          range_min: 0.1
+          range_min: 0.9
           range_max: 30
           use_inf: true
           # Concurrency level, affects number of pointclouds queued for processing and number of threads used 0 : Detect number of cores 1 

@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   std_msgs
   dynamic_reconfigure
+  nav_msgs
 )
 
 ## Generate messages in the 'msg' folder
@@ -25,14 +26,12 @@ add_service_files(
    FILES
    GetSTeFMap.srv
    UpdateSTeFMap.srv
+   GetVisibilityMap.srv
  )
 
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-   DEPENDENCIES
-   std_msgs
- )
+generate_messages(DEPENDENCIES std_msgs nav_msgs)
 
  generate_dynamic_reconfigure_options(
   cfg/stefmapclient.cfg

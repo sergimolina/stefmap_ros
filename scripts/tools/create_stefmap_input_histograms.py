@@ -41,7 +41,7 @@ if __name__ == '__main__':
 	time_col = 0 
 	x_col = 2
 	y_col = 3
-	theta_col = 5
+	theta_col = 4
 
 	# start the histogram building
 	rows = int((x_max - x_min)/grid_size)

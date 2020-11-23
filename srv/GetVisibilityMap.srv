@@ -1,0 +1,3 @@
+# no input needed to get the visibility map
+---
+nav_msgs/OccupancyGrid visibility_map
