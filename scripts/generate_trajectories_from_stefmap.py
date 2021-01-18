@@ -17,7 +17,7 @@ class trajectory_generator_node(object):
 
 		#params
 		self.output_filename = "zone0_12h_scenario2.txt"
-		self.stefmap_prediction_filename = "stefmap_msg_12h.txt"
+		self.stefmap_prediction_filename = "stefmap_msg_12h.yaml"
 		self.zone_number = 0
 		self.zone_limits_filename = "../config/orkla_zone_limits.json"
 		self.num_traj_to_generate = 10
@@ -518,7 +518,7 @@ class trajectory_generator_node(object):
 
 	def run(self):
 		trajectories_generated = 0
-		while trajectories_generated <= self.num_traj_to_generate and not rospy.is_shutdown():
+		while trajectories_generated < self.num_traj_to_generate and not rospy.is_shutdown():
 			self.trajectory_cell_path,self.backwards_cell_path = self.compute_trajectory()
 			full_path = self.backwards_cell_path[::-1]+self.trajectory_cell_path
 			print full_path
