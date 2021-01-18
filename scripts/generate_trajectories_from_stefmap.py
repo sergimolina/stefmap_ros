@@ -3,7 +3,6 @@
 import time
 import math
 import rospy
-import yaml
 import random
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Point
@@ -16,8 +15,8 @@ class trajectory_generator_node(object):
 	def __init__(self):
 
 		#params
-		self.output_filename = "zone0_12h_scenario2.txt"
-		self.stefmap_prediction_filename = "stefmap_msg_12h.yaml"
+		self.output_filename = "../data/zone0_12h_scenario2.txt"
+		self.stefmap_prediction_filename = "../data/orkla_stefmap_12am_order10.json"
 		self.zone_number = 0
 		self.zone_limits_filename = "../config/orkla_zone_limits.json"
 		self.num_traj_to_generate = 10
@@ -27,21 +26,24 @@ class trajectory_generator_node(object):
 
 		#read the zone limits file
 		with open(self.zone_limits_filename,"r") as zfile:
-			self.zone_limits = yaml.load(zfile)
+			self.zone_limits = json.load(zfile)
 
 		#read the stefmap folder
 		with open(self.stefmap_prediction_filename,"r") as ifile:
-			self.stefmap_prediction = yaml.load(ifile)
+			self.stefmap_prediction = json.load(ifile)
 
-		self.frame_id = self.stefmap_prediction["header"]["frame_id"]
-		self.x_min = self.stefmap_prediction["x_min"]
-		self.x_max = self.stefmap_prediction["x_max"]
-		self.y_min = self.stefmap_prediction["y_min"]
-		self.y_max = self.stefmap_prediction["y_max"]
-		self.cell_size = self.stefmap_prediction["cell_size"]
-		self.rows = self.stefmap_prediction["rows"]
-		self.columns = self.stefmap_prediction["columns"]
-		self.num_cells = len(self.stefmap_prediction["cells"])
+		print self.stefmap_prediction["stefmap"]["x_min"]
+		print self.stefmap_prediction["stefmap"]["x_min"]
+
+		self.frame_id = self.stefmap_prediction["stefmap"]["header"]["frame_id"]
+		self.x_min = self.stefmap_prediction["stefmap"]["x_min"]
+		self.x_max = self.stefmap_prediction["stefmap"]["x_max"]
+		self.y_min = self.stefmap_prediction["stefmap"]["y_min"]
+		self.y_max = self.stefmap_prediction["stefmap"]["y_max"]
+		self.cell_size = self.stefmap_prediction["stefmap"]["cell_size"]
+		self.rows = self.stefmap_prediction["stefmap"]["rows"]
+		self.columns = self.stefmap_prediction["stefmap"]["columns"]
+		self.num_cells = len(self.stefmap_prediction["stefmap"]["cells"])
 
 		self.width = int((self.x_max-self.x_min)/self.cell_size) ## [cells]
 		self.height = int((self.y_max-self.y_min)/self.cell_size) ## [cells]
@@ -67,12 +69,12 @@ class trajectory_generator_node(object):
 		for r in range(0,self.rows):
 			for c in range(0,self.columns):
 				stefmap_cell = STeFMapCellMsg()
-				stefmap_cell.row = self.stefmap_prediction["cells"][index]["row"]
-				stefmap_cell.column = self.stefmap_prediction["cells"][index]["column"]
-				stefmap_cell.x = self.stefmap_prediction["cells"][index]["x"]
-				stefmap_cell.y = self.stefmap_prediction["cells"][index]["y"]
-				stefmap_cell.probabilities = self.stefmap_prediction["cells"][index]["probabilities"]
-				stefmap_cell.best_angle = self.stefmap_prediction["cells"][index]["best_angle"]
+				stefmap_cell.row = self.stefmap_prediction["stefmap"]["cells"][index]["row"]
+				stefmap_cell.column = self.stefmap_prediction["stefmap"]["cells"][index]["column"]
+				stefmap_cell.x = self.stefmap_prediction["stefmap"]["cells"][index]["x"]
+				stefmap_cell.y = self.stefmap_prediction["stefmap"]["cells"][index]["y"]
+				stefmap_cell.probabilities = self.stefmap_prediction["stefmap"]["cells"][index]["probabilities"]
+				stefmap_cell.best_angle = self.stefmap_prediction["stefmap"]["cells"][index]["best_angle"]
 				self.mSTefMap.cells.append(stefmap_cell)
 				index = index + 1
 		self.stefmapPub.publish(self.mSTefMap)
@@ -110,7 +112,7 @@ class trajectory_generator_node(object):
 			x_start = random.uniform(self.zone_limits[str(self.zone_number)]["x_min"],self.zone_limits[str(self.zone_number)]["x_max"])
 			y_start = random.uniform(self.zone_limits[str(self.zone_number)]["y_min"],self.zone_limits[str(self.zone_number)]["y_max"])
 			starting_cell = self.point2index(y_start,x_start)
-			sum_prob = sum(self.stefmap_prediction["cells"][starting_cell]["probabilities"])
+			sum_prob = sum(self.stefmap_prediction["stefmap"]["cells"][starting_cell]["probabilities"])
 			iterations = iterations + 1
 
 		if iterations >=10000:
@@ -123,7 +125,7 @@ class trajectory_generator_node(object):
 		# iterations = 0
 		# while sum_prob == 0 and iterations<10000:
 		# 	starting_cell = random.randint(0,self.num_cells-1)
-		# 	sum_prob = sum(self.stefmap_prediction["cells"][starting_cell]["probabilities"])
+		# 	sum_prob = sum(self.stefmap_prediction["stefmap"]["cells"][starting_cell]["probabilities"])
 		# 	iterations = iterations + 1
 
 		# if iterations >=10000:
@@ -135,7 +137,7 @@ class trajectory_generator_node(object):
 
 
 		# 2 - compute the trajectory path forward
-		mov_direction = int(self.stefmap_prediction["cells"][starting_cell]["best_angle"]/45)
+		mov_direction = int(self.stefmap_prediction["stefmap"]["cells"][starting_cell]["best_angle"]/45)
 		mov_path.append(mov_direction)
 		
 		current_cell = self.calculate_destination_cell(starting_cell,mov_direction)
@@ -165,7 +167,7 @@ class trajectory_generator_node(object):
 
 
 		# 3 - compute the trajectory path backwards until the ini point given by the stefmap prediction
-		mov_direction = int(self.stefmap_prediction["cells"][starting_cell]["best_angle"]/45)
+		mov_direction = int(self.stefmap_prediction["stefmap"]["cells"][starting_cell]["best_angle"]/45)
 
 		current_cell = starting_cell
 		max_path_backwards = self.max_traj_length - len(cell_path)
@@ -180,8 +182,8 @@ class trajectory_generator_node(object):
 		return cell_path,backwards_cell_path
 
 	def calculate_destination_cell(self,current_cell,direction_of_movement):
-		current_row = self.stefmap_prediction["cells"][current_cell]["row"]
-		current_col = self.stefmap_prediction["cells"][current_cell]["column"]
+		current_row = self.stefmap_prediction["stefmap"]["cells"][current_cell]["row"]
+		current_col = self.stefmap_prediction["stefmap"]["cells"][current_cell]["column"]
 
 		if direction_of_movement == 0:
 			destination_row = current_row + 1
@@ -210,7 +212,7 @@ class trajectory_generator_node(object):
 
 		destination_cell = destination_col + destination_row*self.width
 		#transform row and col into cell index
-		if destination_row < 0 or destination_row > self.width or destination_col < 0 or destination_col > self.height or sum(self.stefmap_prediction["cells"][destination_cell]["probabilities"])==0:
+		if destination_row < 0 or destination_row > self.width or destination_col < 0 or destination_col > self.height or sum(self.stefmap_prediction["stefmap"]["cells"][destination_cell]["probabilities"])==0:
 			destination_cell = -1 #cell out of bounds
 			
 		return destination_cell
@@ -241,7 +243,7 @@ class trajectory_generator_node(object):
 					if o == 0:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							prob = self.stefmap_prediction["cells"][origin_cell]["probabilities"][4]
+							prob = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][4]
 							if prob > max_prob:
 								max_prob = prob
 								procedence_cell = origin_cell
@@ -249,7 +251,7 @@ class trajectory_generator_node(object):
 					elif o == 1:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							prob = self.stefmap_prediction["cells"][origin_cell]["probabilities"][5]
+							prob = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][5]
 							if prob > max_prob:
 								max_prob = prob
 								procedence_cell = origin_cell
@@ -257,7 +259,7 @@ class trajectory_generator_node(object):
 					elif o == 2:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							prob = self.stefmap_prediction["cells"][origin_cell]["probabilities"][6]
+							prob = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][6]
 							if prob > max_prob:
 								max_prob = prob
 								procedence_cell = origin_cell	
@@ -265,7 +267,7 @@ class trajectory_generator_node(object):
 					elif o == 3:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							prob = self.stefmap_prediction["cells"][origin_cell]["probabilities"][7]
+							prob = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][7]
 							if prob > max_prob:
 								max_prob = prob
 								procedence_cell = origin_cell
@@ -273,7 +275,7 @@ class trajectory_generator_node(object):
 					elif o == 4:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							prob = self.stefmap_prediction["cells"][origin_cell]["probabilities"][0]
+							prob = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][0]
 							if prob > max_prob:
 								max_prob = prob
 								procedence_cell = origin_cell
@@ -281,7 +283,7 @@ class trajectory_generator_node(object):
 					elif o == 5:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							prob = self.stefmap_prediction["cells"][origin_cell]["probabilities"][1]
+							prob = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][1]
 							if prob > max_prob:
 								max_prob = prob
 								procedence_cell = origin_cell
@@ -289,7 +291,7 @@ class trajectory_generator_node(object):
 					elif o == 6:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							prob = self.stefmap_prediction["cells"][origin_cell]["probabilities"][2]
+							prob = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][2]
 							if prob > max_prob:
 								max_prob = prob
 								procedence_cell = origin_cell
@@ -297,7 +299,7 @@ class trajectory_generator_node(object):
 					elif o == 7:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							prob = self.stefmap_prediction["cells"][origin_cell]["probabilities"][3]
+							prob = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][3]
 							if prob > max_prob:
 								max_prob = prob
 								procedence_cell = origin_cell
@@ -315,42 +317,42 @@ class trajectory_generator_node(object):
 					if o == 0:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							probabilities[4] = self.stefmap_prediction["cells"][origin_cell]["probabilities"][4]
+							probabilities[4] = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][4]
 							origin_cells[4] = origin_cell
 					elif o == 1:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							probabilities[5] = self.stefmap_prediction["cells"][origin_cell]["probabilities"][5]
+							probabilities[5] = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][5]
 							origin_cells[5] = origin_cell
 					elif o == 2:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							probabilities[6] = self.stefmap_prediction["cells"][origin_cell]["probabilities"][6]
+							probabilities[6] = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][6]
 							origin_cells[6] = origin_cell
 					elif o == 3:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							probabilities[7] = self.stefmap_prediction["cells"][origin_cell]["probabilities"][7]
+							probabilities[7] = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][7]
 							origin_cells[7] = origin_cell
 					elif o == 4:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							probabilities[0] = self.stefmap_prediction["cells"][origin_cell]["probabilities"][0]
+							probabilities[0] = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][0]
 							origin_cells[0] = origin_cell
 					elif o == 5:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							probabilities[1] = self.stefmap_prediction["cells"][origin_cell]["probabilities"][1]
+							probabilities[1] = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][1]
 							origin_cells[1] = origin_cell
 					elif o == 6:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							probabilities[2] = self.stefmap_prediction["cells"][origin_cell]["probabilities"][2]
+							probabilities[2] = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][2]
 							origin_cells[2] = origin_cell
 					elif o == 7:
 						origin_cell = self.calculate_destination_cell(current_cell,o)
 						if origin_cell != -1:
-							probabilities[3] = self.stefmap_prediction["cells"][origin_cell]["probabilities"][3]
+							probabilities[3] = self.stefmap_prediction["stefmap"]["cells"][origin_cell]["probabilities"][3]
 							origin_cells[3] = origin_cell
 
 			sum_prob = sum(probabilities)
@@ -392,7 +394,7 @@ class trajectory_generator_node(object):
 			max_prob = 0
 			for o in range(0,8):
 				if (o in forbidden_orientations) == False:
-					orientation_prob = self.stefmap_prediction["cells"][current_cell]["probabilities"][o]
+					orientation_prob = self.stefmap_prediction["stefmap"]["cells"][current_cell]["probabilities"][o]
 					if orientation_prob > max_prob:
 						max_prob = orientation_prob
 						mov_direction = o
@@ -404,7 +406,7 @@ class trajectory_generator_node(object):
 			probabilities = [0,0,0,0,0,0,0,0]
 			for o in range (0,8):
 				if (o in forbidden_orientations) == False:
-					probabilities[o] = self.stefmap_prediction["cells"][current_cell]["probabilities"][o]
+					probabilities[o] = self.stefmap_prediction["stefmap"]["cells"][current_cell]["probabilities"][o]
 
 			sum_prob = sum(probabilities)
 
@@ -440,8 +442,8 @@ class trajectory_generator_node(object):
 		trajectory_marker.color.a = 1
 		
 		traj_point = Point()
-		traj_point.x = self.stefmap_prediction["cells"][self.trajectory_cell_path[0]]["x"]
-		traj_point.y = self.stefmap_prediction["cells"][self.trajectory_cell_path[0]]["y"]
+		traj_point.x = self.stefmap_prediction["stefmap"]["cells"][self.trajectory_cell_path[0]]["x"]
+		traj_point.y = self.stefmap_prediction["stefmap"]["cells"][self.trajectory_cell_path[0]]["y"]
 		traj_point.z = -0.1
 		trajectory_marker.points.append(traj_point)
 		self.markerPub.publish(trajectory_marker)
@@ -468,8 +470,8 @@ class trajectory_generator_node(object):
 		#points
 		for c in range(1,len(self.trajectory_cell_path)):
 			traj_point = Point()
-			traj_point.x = self.stefmap_prediction["cells"][self.trajectory_cell_path[c]]["x"]
-			traj_point.y = self.stefmap_prediction["cells"][self.trajectory_cell_path[c]]["y"]
+			traj_point.x = self.stefmap_prediction["stefmap"]["cells"][self.trajectory_cell_path[c]]["x"]
+			traj_point.y = self.stefmap_prediction["stefmap"]["cells"][self.trajectory_cell_path[c]]["y"]
 			traj_point.z = -0.1
 			trajectory_marker.points.append(traj_point)
 
@@ -498,8 +500,8 @@ class trajectory_generator_node(object):
 		#points
 		for c in range(0,len(self.backwards_cell_path)):
 			traj_point = Point()
-			traj_point.x = self.stefmap_prediction["cells"][self.backwards_cell_path[c]]["x"]
-			traj_point.y = self.stefmap_prediction["cells"][self.backwards_cell_path[c]]["y"]
+			traj_point.x = self.stefmap_prediction["stefmap"]["cells"][self.backwards_cell_path[c]]["x"]
+			traj_point.y = self.stefmap_prediction["stefmap"]["cells"][self.backwards_cell_path[c]]["y"]
 			traj_point.z = -0.1
 			trajectory_marker.points.append(traj_point)
 
@@ -527,8 +529,8 @@ class trajectory_generator_node(object):
 				x_path=[]
 				y_path=[]
 				for i in range(0,path_len):
-					x_path.append(self.stefmap_prediction["cells"][full_path[i]]["x"])
-					y_path.append(self.stefmap_prediction["cells"][full_path[i]]["y"])
+					x_path.append(self.stefmap_prediction["stefmap"]["cells"][full_path[i]]["x"])
+					y_path.append(self.stefmap_prediction["stefmap"]["cells"][full_path[i]]["y"])
 
 				#append in the file
 

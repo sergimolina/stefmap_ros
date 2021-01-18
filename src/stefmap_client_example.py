@@ -7,6 +7,10 @@ from std_msgs.msg import Header
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.dom import minidom
 from xml.etree import ElementTree
+import yaml
+import json
+from rospy_message_converter import json_message_converter
+import simplejson
 
 def prettify(elem):
     """Return a pretty-printed XML string for the Element.
@@ -15,7 +19,6 @@ def prettify(elem):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
-
 if __name__ == "__main__":
 
     prediction_order = 10
@@ -23,8 +26,12 @@ if __name__ == "__main__":
     prediction_time_end = 3600*12
     prediction_time_step = 3600
     loop = False
-    save_in_xml_cliffmapformat = True
-    output_cliffmapformat_filename = "orkla_stefmap_12pm_order10.xml"
+
+    save_prediction_yaml_format = True
+    output_yaml_filename = "../data/orkla_stefmap_12am_order10.json"
+
+    save_in_xml_cliffmapformat = False
+    output_cliffmapformat_filename = "../data/orkla_stefmap_12am_order10.xml"
 
 
     rospy.init_node("stefmap_client_node")
@@ -39,6 +46,11 @@ if __name__ == "__main__":
                 print "TIME: "+str(t/3600)+":00h"
                 get_stefmap = rospy.ServiceProxy('get_stefmap', GetSTeFMap)
                 stefmap = get_stefmap(t,prediction_order)
+
+                if save_prediction_yaml_format:
+                    #print json_message_converter.convert_ros_message_to_json(stefmap)
+                    with open(output_yaml_filename,"w") as ofile:
+                        simplejson.dump(simplejson.loads(json_message_converter.convert_ros_message_to_json(stefmap)),ofile,indent=4,sort_keys=True)
 
                 if save_in_xml_cliffmapformat:
                     top = Element('map')
