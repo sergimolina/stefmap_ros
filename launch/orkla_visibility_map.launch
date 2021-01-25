@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+
+    <param name="use_sim_time" value="true"/>
+
+    <node pkg="stefmap_ros" type="compute_visibility_map.py" name="compute_visibility_map_node" output="screen">
+        <param name="grid_size" value="1"/>  
+        <param name="x_min" value="-10" />
+        <param name="x_max" value="60" />
+        <param name="y_min" value="-10" />
+        <param name="y_max" value="60" />
+        <param name="frame_id" value="world" />
+        <param name="coverage_laser_topic_1" value="/robot4/sensors/laser2d_top" />
+        <param name="coverage_laser_topic_2" value="/robot4/sensors/laser2d_floor" />
+        <param name="coverage_time_update" value="5" />
+        <param name="max_coverage_distance" value="13.5" />
+        <param name="full_observability" value="True" />
+    </node>
+
+</launch>

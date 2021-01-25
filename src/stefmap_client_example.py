@@ -21,13 +21,13 @@ def prettify(elem):
 
 if __name__ == "__main__":
 
-    prediction_order = 10
+    prediction_order = 0
     prediction_time_ini = 3600*12
     prediction_time_end = 3600*12
     prediction_time_step = 3600
     loop = False
 
-    save_prediction_yaml_format = True
+    save_prediction_yaml_format = False
     output_yaml_filename = "../data/orkla_stefmap_12am_order10.json"
 
     save_in_xml_cliffmapformat = False

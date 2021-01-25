@@ -15,7 +15,7 @@ class trajectory_generator_node(object):
 	def __init__(self):
 
 		#params
-		self.output_filename = "../data/zone0_12h_scenario2.txt"
+		self.output_filename = "../data/trajectories_zone0_12h_scenario2.txt"
 		self.stefmap_prediction_filename = "../data/orkla_stefmap_12am_order10.json"
 		self.zone_number = 0
 		self.zone_limits_filename = "../config/orkla_zone_limits.json"

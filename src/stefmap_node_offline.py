@@ -76,9 +76,6 @@ class STeFmap_node_offline(object):
 
 		self.run()
 
-	def cell2index(self,cell_x,cell_y):
-		index = cell_x + cell_y*self.width 
-		return int(index)
 		
 	def handle_UpdateSTeFMap(self,req):
 		self.bin_counts_matrix = np.reshape(req.data,[self.width,self.height,self.num_bins])
@@ -109,7 +106,7 @@ class STeFmap_node_offline(object):
 
 		for r in range(0,int(self.width)):
 			for c in range(0,int(self.height)):
-				index = self.cell2index(r,c)
+				index = ctools.cell2index(r,c,self.width,self.height)
 				# normalized the accumulated distribution -> total sum = 1
 				total_count = np.sum(self.bin_counts_matrix_accumulated[r][c][:])
 				if total_count > 0:
