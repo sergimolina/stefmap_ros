@@ -8,7 +8,7 @@
     <arg name="x_max" value="60" />
     <arg name="y_min" value="-10" />
     <arg name="y_max" value="60" />
-    <arg name="frame_id" value="map_laser2d" />
+    <arg name="frame_id" value="world" />
 
     <node pkg="stefmap_ros" type="stefmap_node_online.py" name="stefmap_node" output="screen">
     	<param name="grid_size" value="$(arg grid_size)"/>  
