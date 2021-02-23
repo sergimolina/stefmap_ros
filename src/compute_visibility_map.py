@@ -13,6 +13,7 @@ import numpy as np
 import tf
 from stefmap_ros.srv import GetVisibilityMap
 import cell_tools as ctools
+import copy
 
 class compute_visibility_map_node(object):
 
@@ -23,15 +24,15 @@ class compute_visibility_map_node(object):
 		self.x_max = rospy.get_param('~x_max',50) #meters
 		self.y_min = rospy.get_param('~y_min',-50)#meters
 		self.y_max = rospy.get_param('~y_max',50) #meters
-		self.coverage_laser_topic_1 = rospy.get_param('~coverage_laser_topic_1',"/coverage_scan_1")
-		self.coverage_laser_topic_2 = rospy.get_param('~coverage_laser_topic_2',"/coverage_scan_2")
-		self.coverage_laser_topic_3 = rospy.get_param('~coverage_laser_topic_3',"/coverage_scan_3")
-		self.coverage_laser_topic_4 = rospy.get_param('~coverage_laser_topic_4',"/coverage_scan_4")
-		self.coverage_laser_topic_5 = rospy.get_param('~coverage_laser_topic_5',"/coverage_scan_5")
-		self.coverage_laser_topic_6 = rospy.get_param('~coverage_laser_topic_6',"/coverage_scan_6")
-		self.coverage_laser_topic_7 = rospy.get_param('~coverage_laser_topic_7',"/coverage_scan_7")
-		self.coverage_laser_topic_8 = rospy.get_param('~coverage_laser_topic_8',"/coverage_scan_8")
-		self.coverage_laser_topic_9 = rospy.get_param('~coverage_laser_topic_9',"/coverage_scan_9")
+		self.coverage_laser_robot_1 = rospy.get_param('~coverage_laser_robot_1',"/coverage_scan_1")
+		self.coverage_laser_robot_2 = rospy.get_param('~coverage_laser_robot_2',"/coverage_scan_2")
+		self.coverage_laser_robot_3 = rospy.get_param('~coverage_laser_robot_3',"/coverage_scan_3")
+		self.coverage_laser_robot_4 = rospy.get_param('~coverage_laser_robot_4',"/coverage_scan_4")
+		self.coverage_laser_robot_5 = rospy.get_param('~coverage_laser_robot_5',"/coverage_scan_5")
+		self.coverage_laser_robot_6 = rospy.get_param('~coverage_laser_robot_6',"/coverage_scan_6")
+		self.coverage_laser_robot_7 = rospy.get_param('~coverage_laser_robot_7',"/coverage_scan_7")
+		self.coverage_laser_robot_8 = rospy.get_param('~coverage_laser_robot_8',"/coverage_scan_8")
+		self.coverage_laser_robot_9 = rospy.get_param('~coverage_laser_robot_9',"/coverage_scan_9")
 		self.coverage_time_update = rospy.get_param('~coverage_time_update',5) # seconds
 		self.max_coverage_distance = rospy.get_param('~max_coverage_distance',15) # meters
 		self.frame_id = rospy.get_param('~frame_id',"map")
@@ -61,18 +62,27 @@ class compute_visibility_map_node(object):
 		self.tf_listener = tf.TransformListener()
 
 		# subscribe to topics
-		rospy.Subscriber(self.coverage_laser_topic_1,LaserScan, self.lasercoverage_callback_1,queue_size=1)
-		rospy.Subscriber(self.coverage_laser_topic_2,LaserScan, self.lasercoverage_callback_2,queue_size=1)
-		rospy.Subscriber(self.coverage_laser_topic_3,LaserScan, self.lasercoverage_callback_3,queue_size=1)
-		rospy.Subscriber(self.coverage_laser_topic_4,LaserScan, self.lasercoverage_callback_4,queue_size=1)
-		rospy.Subscriber(self.coverage_laser_topic_5,LaserScan, self.lasercoverage_callback_5,queue_size=1)
-		rospy.Subscriber(self.coverage_laser_topic_6,LaserScan, self.lasercoverage_callback_6,queue_size=1)
-		rospy.Subscriber(self.coverage_laser_topic_7,LaserScan, self.lasercoverage_callback_7,queue_size=1)
-		rospy.Subscriber(self.coverage_laser_topic_8,LaserScan, self.lasercoverage_callback_8,queue_size=1)
-		rospy.Subscriber(self.coverage_laser_topic_9,LaserScan, self.lasercoverage_callback_9,queue_size=1)
+		rospy.Subscriber(self.coverage_laser_robot_1,LaserScan, self.lasercoverage_callback_1,queue_size=1)
+		rospy.Subscriber(self.coverage_laser_robot_2,LaserScan, self.lasercoverage_callback_2,queue_size=1)
+		rospy.Subscriber(self.coverage_laser_robot_3,LaserScan, self.lasercoverage_callback_3,queue_size=1)
+		rospy.Subscriber(self.coverage_laser_robot_4,LaserScan, self.lasercoverage_callback_4,queue_size=1)
+		rospy.Subscriber(self.coverage_laser_robot_5,LaserScan, self.lasercoverage_callback_5,queue_size=1)
+		rospy.Subscriber(self.coverage_laser_robot_6,LaserScan, self.lasercoverage_callback_6,queue_size=1)
+		rospy.Subscriber(self.coverage_laser_robot_7,LaserScan, self.lasercoverage_callback_7,queue_size=1)
+		rospy.Subscriber(self.coverage_laser_robot_8,LaserScan, self.lasercoverage_callback_8,queue_size=1)
+		rospy.Subscriber(self.coverage_laser_robot_9,LaserScan, self.lasercoverage_callback_9,queue_size=1)
 
 		# create topic publishers
 		self.visibility_map_pub = rospy.Publisher('/visibility_map', OccupancyGrid, queue_size=1)
+		self.visibility_map_robot_1_pub = rospy.Publisher('/robot1/visibility_map', OccupancyGrid, queue_size=1)
+		self.visibility_map_robot_2_pub = rospy.Publisher('/robot2/visibility_map', OccupancyGrid, queue_size=1)
+		self.visibility_map_robot_3_pub = rospy.Publisher('/robot3/visibility_map', OccupancyGrid, queue_size=1)
+		self.visibility_map_robot_4_pub = rospy.Publisher('/robot4/visibility_map', OccupancyGrid, queue_size=1)
+		self.visibility_map_robot_5_pub = rospy.Publisher('/robot5/visibility_map', OccupancyGrid, queue_size=1)
+		self.visibility_map_robot_6_pub = rospy.Publisher('/robot6/visibility_map', OccupancyGrid, queue_size=1)
+		self.visibility_map_robot_7_pub = rospy.Publisher('/robot7/visibility_map', OccupancyGrid, queue_size=1)
+		self.visibility_map_robot_8_pub = rospy.Publisher('/robot8/visibility_map', OccupancyGrid, queue_size=1)
+		self.visibility_map_robot_9_pub = rospy.Publisher('/robot9/visibility_map', OccupancyGrid, queue_size=1)
 
 		# create services
 		visibility_map_service = rospy.Service('get_visibility_map', GetVisibilityMap, self.handle_get_visibility_map)
@@ -184,16 +194,43 @@ class compute_visibility_map_node(object):
 						for j in range(0,len(raytrace_x_points)):
 							index = ctools.point2index(raytrace_x_points[j],raytrace_y_points[j],self.x_min,self.x_max,self.y_min,self.y_max,self.grid_size,self.width,self.height)
 							if index != -1:
-								self.visibility_map.data[index] = 100
+								self.visibility_map.data[index] = l+1
 
 					end = time.time()
+					single_visibility_map = OccupancyGrid()
+					single_visibility_map = copy.deepcopy(self.visibility_map)
+					for i in range(0,len(single_visibility_map.data)):
+						if single_visibility_map.data[i] == l+1:
+							single_visibility_map.data[i] = 100
+						else:
+							single_visibility_map.data[i] = 0
+					if l == 0:
+						self.visibility_map_robot_1_pub.publish(single_visibility_map)
+					elif l == 1:
+						self.visibility_map_robot_2_pub.publish(single_visibility_map)
+					elif l == 2:
+						self.visibility_map_robot_3_pub.publish(single_visibility_map)
+					elif l == 3:
+						self.visibility_map_robot_4_pub.publish(single_visibility_map)
+					elif l == 4:
+						self.visibility_map_robot_5_pub.publish(single_visibility_map)
+					elif l == 5:
+						self.visibility_map_robot_6_pub.publish(single_visibility_map)
+					elif l == 6:
+						self.visibility_map_robot_7_pub.publish(single_visibility_map)
+					elif l == 7:
+						self.visibility_map_robot_8_pub.publish(single_visibility_map)
+					elif l == 8:
+						self.visibility_map_robot_9_pub.publish(single_visibility_map)
 					#rospy.loginfo("Laserscan num "+str(l+1)+" has taken " + str(end - start)+" seconds to compute its visibility map")
 		else:
 			self.visibility_map.data = np.ones(self.width*self.height)*100
 
+		for i in range(0,len(self.visibility_map.data)):
+			if self.visibility_map.data[i] > 0:
+				self.visibility_map.data[i] = 100
 		self.visibility_map_pub.publish(self.visibility_map)
-		#self.last_visibility_map = self.visibility_map
-		return self.visibility_map
+		return 1
 
 	def handle_get_visibility_map(self,req):
 		return	self.visibility_map

@@ -42,6 +42,7 @@ class STeFmap_node_online(object):
 		self.people_detections_topic_8 = rospy.get_param('~people_detections_topic_8',"/people_detections_8")
 		self.people_detections_topic_9 = rospy.get_param('~people_detections_topic_9',"/people_detections_9")
 		
+		#variables
 		self.width = int((self.x_max-self.x_min)/self.grid_size) ## [cells]
 		self.height = int((self.y_max-self.y_min)/self.grid_size) ## [cells]
 
@@ -114,6 +115,9 @@ class STeFmap_node_online(object):
 			rospy.loginfo("All data loaded")
 
 		# subscribe to topics
+		rospy.Subscriber("/visibility_map", OccupancyGrid, self.visibility_map_callback,queue_size=1)
+		self.visibility_map_received = False
+
 		rospy.Subscriber(self.people_detections_topic_1, PoseArray, self.people_detections_callback,queue_size=10)
 		rospy.Subscriber(self.people_detections_topic_2, PoseArray, self.people_detections_callback,queue_size=10)
 		rospy.Subscriber(self.people_detections_topic_3, PoseArray, self.people_detections_callback,queue_size=10)
@@ -124,8 +128,7 @@ class STeFmap_node_online(object):
 		rospy.Subscriber(self.people_detections_topic_8, PoseArray, self.people_detections_callback,queue_size=10)
 		rospy.Subscriber(self.people_detections_topic_9, PoseArray, self.people_detections_callback,queue_size=10)
 
-		rospy.Subscriber("/visibility_map", OccupancyGrid, self.visibility_map_callback,queue_size=1)
-		self.visibility_map_received = False
+
 
 
 		# create timers
@@ -224,7 +227,7 @@ class STeFmap_node_online(object):
 		entropy_map.info.origin.orientation.y = 0
 		entropy_map.info.origin.orientation.z = 0
 		entropy_map.info.origin.orientation.w = 1
-		entropy_map.data = np.ones(self.width*self.height)*1
+		entropy_map.data = np.zeros(self.width*self.height)
 
 		for r in range(0,int(self.width)):
 			for c in range(0,int(self.height)):
@@ -235,10 +238,11 @@ class STeFmap_node_online(object):
 					for b in range(0,int(self.num_bins)):
 						if self.bin_counts_matrix_accumulated[r][c][b] > 0:
 							p_b = self.bin_counts_matrix_accumulated[r][c][b]/total_count
-							entropy_map.data[index] =  entropy_map.data[index] + (-p_b*np.log(p_b))
-
-					entropy_map.data[index] = int(math.ceil(20*entropy_map.data[index]+((self.num_bins-1)/(2*total_count))*np.log(2.718281))) #e = 2.718281
-
+							entropy_map.data[index] =  entropy_map.data[index] + (-p_b*np.log2(p_b))
+					bias = ((self.num_bins-1)/(2*float(total_count)))*np.log2(2.718281)#e = 2.718281
+					entropy_map.data[index] = int(math.ceil(10*(entropy_map.data[index]+bias))) #e = 2.718281
+				else:
+					entropy_map.data[index] = 30
 		self.entropy_map_pub.publish(entropy_map)
 
 	def visibility_map_callback(self,visibility_map_msg):
