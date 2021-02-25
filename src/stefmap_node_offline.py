@@ -102,7 +102,7 @@ class STeFmap_node_offline(object):
 		return fremenarray_result.message
 
 	def update_entropy_map(self,update_time):
-		self.entropy_map.data = np.ones(self.width*self.height)*1
+		entropy_map.data = np.zeros(self.width*self.height)
 
 		for r in range(0,int(self.width)):
 			for c in range(0,int(self.height)):
@@ -113,12 +113,12 @@ class STeFmap_node_offline(object):
 					for b in range(0,int(self.num_bins)):
 						if self.bin_counts_matrix_accumulated[r][c][b] > 0:
 							p_b = self.bin_counts_matrix_accumulated[r][c][b]/total_count
-							self.entropy_map.data[index] =  self.entropy_map.data[index] + (-p_b*np.log(p_b))
-
-					self.entropy_map.data[index] = math.ceil(20*self.entropy_map.data[index]+((self.num_bins-1)/(2*total_count))*np.log(2.718281)) #e = 2.718281
-
-		#self.entropy_map_store.append([update_time,total_map_entropy])
-		self.entropy_map_pub.publish(self.entropy_map)
+							entropy_map.data[index] =  entropy_map.data[index] + (-p_b*np.log2(p_b))
+					bias = ((self.num_bins-1)/(2*float(total_count)))*np.log2(2.718281)#e = 2.718281
+					entropy_map.data[index] = int(math.ceil(10*(entropy_map.data[index]+bias))) #e = 2.718281
+				else:
+					entropy_map.data[index] = 10
+		self.entropy_map_pub.publish(entropy_map)
 
 	def handle_GetSTeFMap(self,req):
 		mSTefMap = STeFMapMsg()

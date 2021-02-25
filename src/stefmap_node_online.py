@@ -242,7 +242,7 @@ class STeFmap_node_online(object):
 					bias = ((self.num_bins-1)/(2*float(total_count)))*np.log2(2.718281)#e = 2.718281
 					entropy_map.data[index] = int(math.ceil(10*(entropy_map.data[index]+bias))) #e = 2.718281
 				else:
-					entropy_map.data[index] = 30
+					entropy_map.data[index] = 10
 		self.entropy_map_pub.publish(entropy_map)
 
 	def visibility_map_callback(self,visibility_map_msg):
