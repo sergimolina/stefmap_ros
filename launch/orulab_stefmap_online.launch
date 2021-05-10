@@ -17,15 +17,15 @@
         <param name="frame_id" value="$(arg frame_id)" />
         <param name="num_bins" value="8" />
     	<param name="interval_time" value="10" />
-    	<param name="people_detections_topic_1" value="" />
-        <param name="people_detections_topic_2" value="" />
+    	<param name="people_detections_topic_1" value="/robot1/human_detections" />
+        <param name="people_detections_topic_2" value="/robot2/human_detections" />
         <param name="people_detections_topic_3" value="" />
         <param name="people_detections_topic_4" value="" />
         <param name="people_detections_topic_5" value="" />
         <param name="people_detections_topic_6" value="" />
         <param name="people_detections_topic_7" value="" />
         <param name="people_detections_topic_8" value="" />
-        <param name="people_detections_topic_9" value="" />
+        <param name="people_detections_topic_9" value="/bt/human_detections" />
         <param name="load_data" value="False" />
         <param name="data_to_load_file" value="" />
         <param name="save_histograms" value="False" />
@@ -50,7 +50,7 @@
         <param name="coverage_laser_robot_6" value="" />
         <param name="coverage_laser_robot_7" value="" />
         <param name="coverage_laser_robot_8" value="" />
-        <param name="coverage_laser_robot_9" value="" />
+        <param name="coverage_laser_robot_9" value="/bt/sensors/laser2d_top" />
         <param name="coverage_time_update" value="2" />
         <param name="max_coverage_distance" value="13.5" />
         <param name="full_observability" value="False" />
