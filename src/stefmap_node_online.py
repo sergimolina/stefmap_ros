@@ -79,40 +79,43 @@ class STeFmap_node_online(object):
 		# Before creating the timers to start updating the fremen models, check wheter there is some data to load
 		if self.load_data:
 			rospy.loginfo("Starting to load data")
-			with open(self.data_to_load_file,"r") as file:
-				for line in file:
-					current_line = line.split(',')
-					timestamp = int(float(current_line[0]))
-					states = []
-					for i in range(1,len(current_line)):
-						states.append(int(current_line[i]))
+			try:
+				with open(self.data_to_load_file,"r") as file:
+					for line in file:
+						current_line = line.split(',')
+						timestamp = int(float(current_line[0]))
+						states = []
+						for i in range(1,len(current_line)):
+							states.append(int(current_line[i]))
 
-					try:
-						self.bin_counts_matrix = np.reshape(states,[self.width,self.height,self.num_bins])
-					except:
-						rospy.loginfo("Data to load dimension is not the same as the dimension defined for the stefmap")
-						continue
-					self.bin_counts_matrix_accumulated = self.bin_counts_matrix_accumulated + self.bin_counts_matrix
-					self.update_entropy_map()
+						try:
+							self.bin_counts_matrix = np.reshape(states,[self.width,self.height,self.num_bins])
+						except:
+							rospy.loginfo("Data to load dimension is not the same as the dimension defined for the stefmap")
+							continue
+						self.bin_counts_matrix_accumulated = self.bin_counts_matrix_accumulated + self.bin_counts_matrix
+						self.update_entropy_map()
 
-					#normalize the histogram before update to fremen
-					for r in range(0,int(self.width)):
-						for c in range(0,int(self.height)):
-							max_count = np.amax(self.bin_counts_matrix[r][c][:])
-							if max_count > 0:
-								for b in range(0,int(self.num_bins)):
-									self.bin_counts_matrix[r][c][b] = 100*self.bin_counts_matrix[r][c][b]/max_count
+						#normalize the histogram before update to fremen
+						for r in range(0,int(self.width)):
+							for c in range(0,int(self.height)):
+								max_count = np.amax(self.bin_counts_matrix[r][c][:])
+								if max_count > 0:
+									for b in range(0,int(self.num_bins)):
+										self.bin_counts_matrix[r][c][b] = 100*self.bin_counts_matrix[r][c][b]/max_count
 
-					fremenarray_msg=FremenArrayGoal()
-					fremenarray_msg.operation = 'add'
-					fremenarray_msg.time = timestamp
-					fremenarray_msg.states = np.reshape(self.bin_counts_matrix,self.width*self.height*self.num_bins)
-					self.fremenarray_client.send_goal(fremenarray_msg)
-					self.fremenarray_client.wait_for_result()
-					fremenarray_result = self.fremenarray_client.get_result()
-					rospy.loginfo(fremenarray_result.message)
-				
-			rospy.loginfo("All data loaded")
+						fremenarray_msg=FremenArrayGoal()
+						fremenarray_msg.operation = 'add'
+						fremenarray_msg.time = timestamp
+						fremenarray_msg.states = np.reshape(self.bin_counts_matrix,self.width*self.height*self.num_bins)
+						self.fremenarray_client.send_goal(fremenarray_msg)
+						self.fremenarray_client.wait_for_result()
+						fremenarray_result = self.fremenarray_client.get_result()
+						rospy.loginfo(fremenarray_result.message)
+					
+				rospy.loginfo("All data loaded")
+			except:
+				rospy.loginfo("No data to load file found")
 
 		# subscribe to topics
 		rospy.Subscriber("/visibility_map", OccupancyGrid, self.visibility_map_callback,queue_size=1)
@@ -127,9 +130,6 @@ class STeFmap_node_online(object):
 		rospy.Subscriber(self.people_detections_topic_7, PoseArray, self.people_detections_callback,queue_size=10)
 		rospy.Subscriber(self.people_detections_topic_8, PoseArray, self.people_detections_callback,queue_size=10)
 		rospy.Subscriber(self.people_detections_topic_9, PoseArray, self.people_detections_callback,queue_size=10)
-
-
-
 
 		# create timers
 		self.update_fremen_timer = rospy.Timer(rospy.Duration(self.interval_time),self.update_fremen_models)
