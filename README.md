@@ -28,7 +28,8 @@ There are two modalities to run the STeF-map: Online or Offline
 
 #### Services:
     ~get_stefmap (stefmap_ros/GetSTeFMap)
-        It returns a STeF-map prediction given a time (unix) and the model order (frequency components to use to calculate the output)
+        It returns a STeF-map prediction given a time (unix) and the model order (frequency components to use to calculate the output). 
+        An example on how obtain stefmap prediction can be found in: https://github.com/sergimolina/stefmap_ros/blob/master/src/stefmap_client_currenttime.py
 
 #### Parameters:
     ~grid_size (float, default: 1)  
@@ -65,7 +66,7 @@ There are two modalities to run the STeF-map: Online or Offline
         Name of the file data to load if the 'load_data' parameter is set to True.
     
     ~save_histograms (bool, default: False)
-        Defines whether or not to save the histograms in to a file to later use.
+        Defines whether or not to save the histograms after every interval in to a file for later use.
         
     ~histograms_to_save_file (float, default: 5)
         Name of the file data where to save the hiostrograms if the 'save_histograms' parameter is set to True.
@@ -85,6 +86,7 @@ As mentioned before this way of building the STeF-map is useful when we already 
     
     ~update_stefmap (stefmap_ros/UpdateSTeFMap)
         This service allows to update the STeF-map with the data provided.
+        An example on how to use this service can be found in: https://github.com/sergimolina/stefmap_ros/blob/master/scripts/tools/load_histograms.py
         
 
 #### Parameters:
