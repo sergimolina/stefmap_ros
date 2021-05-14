@@ -14,6 +14,7 @@ import numpy as np
 import tf
 from stefmap_ros.msg import STeFMapMsg,STeFMapCellMsg
 from stefmap_ros.srv import GetSTeFMap, UpdateSTeFMap
+import cell_tools as ctools
 
 class STeFmap_node_offline(object):
 
@@ -30,21 +31,6 @@ class STeFmap_node_offline(object):
 		# initialize visibility map
 		self.width = int((self.x_max-self.x_min)/self.grid_size) ## [cells]
 		self.height = int((self.y_max-self.y_min)/self.grid_size) ## [cells]
-
-		#initialize entropy map
-		self.entropy_map = OccupancyGrid()
-		self.entropy_map.header.frame_id = self.frame_id
-		self.entropy_map.info.resolution = self.grid_size ## [m/cell]
-		self.entropy_map.info.width = self.width ## [cells]
-		self.entropy_map.info.height = self.height ## [cells]
-		self.entropy_map.info.origin.position.x = self.x_min #origin of the map [m,m,rad]. This is the real #world pose of the cell (0,0) in the map
-		self.entropy_map.info.origin.position.y = self.y_min 
-		self.entropy_map.info.origin.position.z = 0
-		self.entropy_map.info.origin.orientation.x = 0
-		self.entropy_map.info.origin.orientation.y = 0
-		self.entropy_map.info.origin.orientation.z = 0
-		self.entropy_map.info.origin.orientation.w = 1
-		self.entropy_map.data = np.zeros(self.width*self.height)
 
 		# connect to fremenarray
 		rospy.loginfo("waiting for FremenArray.....")
@@ -102,6 +88,19 @@ class STeFmap_node_offline(object):
 		return fremenarray_result.message
 
 	def update_entropy_map(self,update_time):
+		entropy_map = OccupancyGrid()
+		entropy_map.header.frame_id = self.frame_id
+		entropy_map.info.resolution = self.grid_size ## [m/cell]
+		entropy_map.info.width = self.width ## [cells]
+		entropy_map.info.height = self.height ## [cells]
+		entropy_map.info.origin.position.x = self.x_min #origin of the map [m,m,rad]. This is the real #world pose of the cell (0,0) in the map
+		entropy_map.info.origin.position.y = self.y_min 
+		entropy_map.info.origin.position.z = 0
+		entropy_map.info.origin.orientation.x = 0
+		entropy_map.info.origin.orientation.y = 0
+		entropy_map.info.origin.orientation.z = 0
+		entropy_map.info.origin.orientation.w = 1
+		entropy_map.data = np.zeros(self.width*self.height)
 		entropy_map.data = np.zeros(self.width*self.height)
 
 		for r in range(0,int(self.width)):
