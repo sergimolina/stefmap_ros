@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+ <!--
+     Launches a gazebo world and a forklift.
+-->
+
+<launch>
+  
+      <!-- 
+      <node pkg="map_server" type="map_server" name="map_server" args="/home/sergi/data/maps/20210518/occupancy_map.yaml">
+        <param name="frame_id" value="map" />
+      </node>
+    -->  
+
+<!-- 
+      <node pkg="map_server" type="map_server" name="map_server_mod" args="/home/sergi/data/maps/mod/orkla_occupancy_map.yaml">
+        <param name="frame_id" value="map_mod" />
+        <remap from="map" to="map_mod"/>
+      </node>
+-->
+     <node pkg="tf" type="static_transform_publisher" name="maplaser_to_mapmod" args="-10.5 10.5 0 -0.37 0 0 \map_laser2d \map_mod 100">
+      </node>
+
+
+
+</launch>
