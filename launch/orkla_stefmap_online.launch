@@ -8,6 +8,8 @@
     <arg name="y_max" value="60" />
     <arg name="frame_id" value="map_mod" />
     <arg name="interval_time" value="300" />
+    <arg name="load_data" value="True" />
+    <arg name="save_histograms" value="True" />
 
     <node pkg="stefmap_ros" type="stefmap_node_online.py" name="stefmap_node" output="screen">
         <param name="grid_size" value="$(arg grid_size)"/>  
@@ -27,10 +29,10 @@
         <param name="people_detections_topic_7" value="" />
         <param name="people_detections_topic_8" value="" />
         <param name="people_detections_topic_9" value="" />
-        <param name="load_data" value="False" />
-        <param name="data_to_load_file" value="$(find stefmap_ros)/data/orkla_2019_06_13_histograms.txt" />
-        <param name="save_histograms" value="False" />
-        <param name="histograms_to_save_file" value="$(find stefmap_ros)/data/test_histograms_saved.txt" />
+        <param name="load_data" value="$(arg load_data)" />
+        <param name="data_to_load_file" value="$(find stefmap_ros)/data/orkla_histograms_-10_60_-10_60_1.txt" />
+        <param name="save_histograms" value="$(arg save_histograms)" />
+        <param name="histograms_to_save_file" value="$(find stefmap_ros)/data/orkla_histograms_-10_60_-10_60_1.txt" />
     </node>
     
     <node pkg="fremenarray" type="fremenarray" name="fremenarray" output="screen">
