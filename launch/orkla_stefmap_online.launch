@@ -6,18 +6,27 @@
     <arg name="x_max" value="60" />
     <arg name="y_min" value="-10" />
     <arg name="y_max" value="60" />
-    <arg name="frame_id" value="world" />
+    <arg name="frame_id" value="map_mod" />
+    <arg name="interval_time" value="300" />
 
     <node pkg="stefmap_ros" type="stefmap_node_online.py" name="stefmap_node" output="screen">
-    	<param name="grid_size" value="$(arg grid_size)"/>  
-		<param name="x_min" value="$(arg x_min)" />
-    	<param name="x_max" value="$(arg x_max)" />
-    	<param name="y_min" value="$(arg y_min)" />
-    	<param name="y_max" value="$(arg y_max)" />
+        <param name="grid_size" value="$(arg grid_size)"/>  
+        <param name="x_min" value="$(arg x_min)" />
+        <param name="x_max" value="$(arg x_max)" />
+        <param name="y_min" value="$(arg y_min)" />
+        <param name="y_max" value="$(arg y_max)" />
         <param name="frame_id" value="$(arg frame_id)" />
         <param name="num_bins" value="8" />
-    	<param name="interval_time" value="10" />
-    	<param name="people_detections_topic_1" value="/groundtruth/detected_persons/posearray" />
+        <param name="interval_time" value="$(arg interval_time)" />
+        <param name="people_detections_topic_1" value="" />
+        <param name="people_detections_topic_2" value="" />
+        <param name="people_detections_topic_3" value="/robot3/human_perception/tracked_persons_in_map_frame/posearray" />
+        <param name="people_detections_topic_4" value="" />
+        <param name="people_detections_topic_5" value="" />
+        <param name="people_detections_topic_6" value="" />
+        <param name="people_detections_topic_7" value="" />
+        <param name="people_detections_topic_8" value="" />
+        <param name="people_detections_topic_9" value="" />
         <param name="load_data" value="False" />
         <param name="data_to_load_file" value="$(find stefmap_ros)/data/orkla_2019_06_13_histograms.txt" />
         <param name="save_histograms" value="False" />
@@ -27,14 +36,6 @@
     <node pkg="fremenarray" type="fremenarray" name="fremenarray" output="screen">
     </node>
 
-    <node pkg="stefmap_ros" type="spencermsgs_to_posearray.py" name="spencermsgs_to_posearray" output="screen">
-      <param name="people_detections_topic" value="/groundtruth/detected_persons"/>
-    </node>
-
-    <node pkg="iliad_human_perception_launch" type="groundtruth_tracks_from_gazebo.py" name="groundtruth_tracks_from_gazebo" output="screen">
-    </node>
-
-
     <node pkg="stefmap_ros" type="compute_visibility_map.py" name="compute_visibility_map_node" output="screen">
         <param name="grid_size" value="$(arg grid_size)"/>  
         <param name="x_min" value="$(arg x_min)" />
@@ -42,16 +43,43 @@
         <param name="y_min" value="$(arg y_min)" />
         <param name="y_max" value="$(arg y_max)" />
         <param name="frame_id" value="$(arg frame_id)" />
-        <param name="coverage_laser_robot_4" value="/robot4/sensors/laser2d_top" />
+        <param name="coverage_laser_robot_1" value="" />
+        <param name="coverage_laser_robot_2" value="" />
+        <param name="coverage_laser_robot_3" value="/robot3/sensors/laser2d_top" />
+        <param name="coverage_laser_robot_4" value="" />
+        <param name="coverage_laser_robot_5" value="" />
+        <param name="coverage_laser_robot_6" value="" />
+        <param name="coverage_laser_robot_7" value="" />
+        <param name="coverage_laser_robot_8" value="" />
+        <param name="coverage_laser_robot_9" value="" />
         <param name="coverage_time_update" value="2" />
         <param name="max_coverage_distance" value="13.5" />
         <param name="full_observability" value="False" />
     </node>
     
+    <!--
     <node pkg="stefmap_ros" type="stefmap_client_currenttime.py" name="stefmap_client_node" output="screen" >
         <param name="prediction_order" value="0"/>
         <param name="time_between_predictions" value="60"/>
     </node>
+    -->
+
+    <node pkg="stefmap_ros" type="spencermsgs_to_posearray.py" name="robot1_tracked_to_posearray" output="screen">
+      <param name="people_detections_topic" value="/robot1/human_perception/tracked_persons_in_map_frame"/>
+    </node>
+
+    <node pkg="stefmap_ros" type="spencermsgs_to_posearray.py" name="robot2_tracked_to_posearray" output="screen">
+      <param name="people_detections_topic" value="/robot2/human_perception/tracked_persons_in_map_frame"/>
+    </node>
+
+    <node pkg="stefmap_ros" type="spencermsgs_to_posearray.py" name="robot3_tracked_to_posearray" output="screen">
+      <param name="people_detections_topic" value="/robot3/human_perception/tracked_persons_in_map_frame"/>
+    </node>
+
+
+
+
+
 
 
 </launch>

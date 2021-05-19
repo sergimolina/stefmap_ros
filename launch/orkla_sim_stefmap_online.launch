@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="grid_size" value="1"/>
+    <arg name="x_min" value="-10" />
+    <arg name="x_max" value="60" />
+    <arg name="y_min" value="-10" />
+    <arg name="y_max" value="60" />
+    <arg name="frame_id" value="world" />
+
+    <node pkg="stefmap_ros" type="stefmap_node_online.py" name="stefmap_node" output="screen">
+    	<param name="grid_size" value="$(arg grid_size)"/>  
+		<param name="x_min" value="$(arg x_min)" />
+    	<param name="x_max" value="$(arg x_max)" />
+    	<param name="y_min" value="$(arg y_min)" />
+    	<param name="y_max" value="$(arg y_max)" />
+        <param name="frame_id" value="$(arg frame_id)" />
+        <param name="num_bins" value="8" />
+    	<param name="interval_time" value="10" />
+    	<param name="people_detections_topic_1" value="/groundtruth/detected_persons/posearray" />
+        <param name="load_data" value="False" />
+        <param name="data_to_load_file" value="$(find stefmap_ros)/data/orkla_2019_06_13_histograms.txt" />
+        <param name="save_histograms" value="False" />
+        <param name="histograms_to_save_file" value="$(find stefmap_ros)/data/test_histograms_saved.txt" />
+    </node>
+    
+    <node pkg="fremenarray" type="fremenarray" name="fremenarray" output="screen">
+    </node>
+
+    <node pkg="stefmap_ros" type="spencermsgs_to_posearray.py" name="spencermsgs_to_posearray" output="screen">
+      <param name="people_detections_topic" value="/groundtruth/detected_persons"/>
+    </node>
+
+    <node pkg="iliad_human_perception_launch" type="groundtruth_tracks_from_gazebo.py" name="groundtruth_tracks_from_gazebo" output="screen">
+    </node>
+
+
+    <node pkg="stefmap_ros" type="compute_visibility_map.py" name="compute_visibility_map_node" output="screen">
+        <param name="grid_size" value="$(arg grid_size)"/>  
+        <param name="x_min" value="$(arg x_min)" />
+        <param name="x_max" value="$(arg x_max)" />
+        <param name="y_min" value="$(arg y_min)" />
+        <param name="y_max" value="$(arg y_max)" />
+        <param name="frame_id" value="$(arg frame_id)" />
+        <param name="coverage_laser_robot_4" value="/robot4/sensors/laser2d_top" />
+        <param name="coverage_time_update" value="2" />
+        <param name="max_coverage_distance" value="13.5" />
+        <param name="full_observability" value="False" />
+    </node>
+    
+    <node pkg="stefmap_ros" type="stefmap_client_currenttime.py" name="stefmap_client_node" output="screen" >
+        <param name="prediction_order" value="0"/>
+        <param name="time_between_predictions" value="60"/>
+    </node>
+
+
+</launch>
