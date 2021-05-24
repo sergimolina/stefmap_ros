@@ -93,8 +93,6 @@ class STeFmap_node_online(object):
 						except:
 							rospy.loginfo("Data to load dimension is not the same as the dimension defined for the stefmap")
 							continue
-						self.bin_counts_matrix_accumulated = self.bin_counts_matrix_accumulated + self.bin_counts_matrix
-						self.update_entropy_map()
 
 						#normalize the histogram before update to fremen
 						for r in range(0,int(self.width)):
@@ -102,7 +100,9 @@ class STeFmap_node_online(object):
 								max_count = np.amax(self.bin_counts_matrix[r][c][:])
 								if max_count > 0:
 									for b in range(0,int(self.num_bins)):
+										self.bin_counts_matrix_accumulated[r][c][b] = self.bin_counts_matrix_accumulated[r][c][b] + self.bin_counts_matrix[r][c][b]
 										self.bin_counts_matrix[r][c][b] = 100*self.bin_counts_matrix[r][c][b]/max_count
+										
 
 						fremenarray_msg=FremenArrayGoal()
 						fremenarray_msg.operation = 'add'
@@ -114,8 +114,11 @@ class STeFmap_node_online(object):
 						rospy.loginfo(fremenarray_result.message)
 					
 				rospy.loginfo("All data loaded")
+				self.update_entropy_map()
+				self.bin_counts_matrix = np.ones([self.width,self.height,self.num_bins])*-1
 			except:
 				rospy.loginfo("No data to load file found")
+
 
 		# subscribe to topics
 		rospy.Subscriber("/visibility_map", OccupancyGrid, self.visibility_map_callback,queue_size=1)
@@ -177,6 +180,7 @@ class STeFmap_node_online(object):
 
 		#before normalizing the counts, update the spatial entropy model
 		bin_counts_matrix_normalised = self.bin_counts_matrix
+		bin_counts_1darray = np.reshape(self.bin_counts_matrix,self.width*self.height*self.num_bins)
 		self.bin_counts_matrix = np.ones([self.width,self.height,self.num_bins])*-1 #initialize cells as unexplored/unknow
 
 		cells_visible = 0
@@ -206,12 +210,10 @@ class STeFmap_node_online(object):
 				hfile.write(str(fremenarray_msg.time))
 				hfile.write(",")
 				for j in range(0,self.width*self.height*self.num_bins):
-					hfile.write(str(int(fremenarray_msg.states[j])))
+					hfile.write(str(int(bin_counts_1darray[j])))
 					if j != self.width*self.height*self.num_bins-1:
 						hfile.write(",")
 				hfile.write("\n")
-
-
 
 
 	def update_entropy_map(self):
