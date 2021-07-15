@@ -38,10 +38,15 @@ if __name__ == '__main__':
 
 	# change these values depending on the structure of the input file
 	input_data = np.genfromtxt(input_file_name, delimiter = ',')
+
 	time_col = 0 
 	x_col = 2
 	y_col = 3
-	theta_col = 4
+
+	# if data is from atc dataset
+	theta_col = 6
+	input_data[:,x_col] = np.divide(input_data[:,x_col],1000)
+	input_data[:,y_col] = np.divide(input_data[:,y_col],1000)
 
 	# start the histogram building
 	rows = int((x_max - x_min)/grid_size)
