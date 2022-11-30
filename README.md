@@ -167,7 +167,7 @@ Node to compute which cell of the environemtn are seen by the robot and which re
 
 
 ## Contact
-For further questions or doubts: smolinamellado@lincoln.ac.uk
+For further questions or doubts: sergimolina91@gmail.com
 
 ## References
 [1] S. Molina, G. Cielniak, T. Krajnik and T. Duckett. Modelling and Predicting Rhythmic Flow Patterns in Dyanmics Environments. In Towards  AutonomousRobotic Systems (TAROS), volume 10965, pages 135–146, 2018. 
